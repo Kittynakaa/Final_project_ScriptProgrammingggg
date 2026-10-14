@@ -140,7 +140,7 @@ pytest            # หรือ  python -m pytest
 | เมธาวี สิทธิชัยเนตร | 663380372-6 | Coder | Debugger | Planner | Coder |
 | สาริษฐ์ บุตรช่วง | 663380365-3 | Debugger | Planner | Coder | Debugger |
 
-> _(เติมชื่อ/รหัส และปรับการหมุนเวียนให้ตรงกับที่กลุ่มทำจริง)_
+
 
 ## 10. ฟีเจอร์และสถานะการพัฒนา (Features & Status)
 
