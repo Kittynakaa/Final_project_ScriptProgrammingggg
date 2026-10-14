@@ -81,7 +81,7 @@
 
 | บทบาท (Role) | สมาชิกที่รับผิดชอบ | ภารกิจหลักใน Sprint 4 |
 | --- | --- | --- |
-| **Planner / Team Leader** | _____________ | • ออกแบบ flow ของ Virtual Try-On และ logic ของ Smart Nail Advisory<br>• วางแผนการปิดโครงการและโครงสร้าง repository ราย Sprint<br>• จัดทำเอกสารสรุปแผนงานและรายงานปิดโครงการภาพรวมทั้ง 4 Sprint |
+| **Planner / Team Leader** | ชาคริต อ่วมอ่ำ | • ออกแบบ flow ของ Virtual Try-On และ logic ของ Smart Nail Advisory<br>• วางแผนการปิดโครงการและโครงสร้าง repository ราย Sprint<br>• จัดทำเอกสารสรุปแผนงานและรายงานปิดโครงการภาพรวมทั้ง 4 Sprint |
 | **Coder** | _____________ | • พัฒนา Virtual Try-On ใน `index.html` (detectNails / paintNail / การโต้ตอบ)<br>• พัฒนา `src/advisory.py` และพอร์ตขึ้นเว็บ (สองภาษา)<br>• ตั้งค่า CI/CD (`ci.yml`, `static.yml`) |
 | **Debugger / QA** | _____________ | • ทดสอบ Virtual Try-On, Advisory และปุ่มเครื่องมือแบบ End-to-End<br>• ตรวจและแก้บั๊ก UX (canvas ถูกซ่อน, สีเลอะพื้นหลัง)<br>• ทำ Regression Test รวบยอดทั้งโครงการ (pytest 21 เคส) ก่อนส่งมอบ |
 
