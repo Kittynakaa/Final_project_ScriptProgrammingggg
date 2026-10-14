@@ -1,0 +1,176 @@
+# 💅 ระบบแนะนำสีทาเล็บจากโทนผิว (Nail Color Recommender)
+
+โปรเจกต์รายวิชา **CP352301 Script Programming** — Final Project
+แอปพลิเคชันวิเคราะห์ภาพมือ/เล็บด้วย **Computer Vision (OpenCV)** เพื่อประเมิน
+โทนผิว (undertone) แล้วแนะนำพาเลตสีทาเล็บที่เข้ากับผู้ใช้ ตามโทนผิว ทรงเล็บ
+และความยาวเล็บ พัฒนาด้วย Python เชิงวัตถุ (OOP) สถาปัตยกรรมแบบ 3 ชั้น
+
+---
+
+## 1. ภาพรวมและคุณค่า (Problem & Value)
+
+การเลือกสีทาเล็บให้เข้ากับสีผิวเป็นเรื่องที่คนส่วนใหญ่ตัดสินใจยากและมักลองผิดลองถูก
+ระบบนี้ช่วยให้:
+
+- **ตัดสินใจง่ายขึ้น** — วิเคราะห์โทนผิวจากรูปถ่ายให้อัตโนมัติ (cool / warm / neutral)
+- **เฉพาะบุคคล** — คำแนะนำปรับตามทรงเล็บและความยาวเล็บที่เลือก
+- **เห็นภาพ** — แสดงพาเลตสีเป็นภาพจริงและบันทึกผลไว้ดูย้อนหลังได้
+
+## 2. หลักการทำงาน (How it works)
+
+1. **ตรวจจับผิว (Skin Mask)** — แปลงภาพเป็น YCrCb แล้ว threshold ช่วงสีผิว
+   ทำ morphology และเลือกก้อนที่ใหญ่ที่สุด (สันนิษฐานว่าเป็นมือ)
+2. **ประเมินโทนผิว (Undertone)** — แปลงเป็น CIE Lab แล้วคำนวณค่า
+   **ITA (Individual Typology Angle)** เพื่อจำแนกเป็น cool / warm / neutral
+3. **แนะนำสี (Rule-based)** — จับคู่โทนผิว + ทรง + ความยาวเล็บ กับ "กฎ" ที่เก็บ
+   ในไฟล์ JSON เพื่อคืนพาเลตสีที่เหมาะสม (สูงสุด 6 ชุด)
+4. **แสดงผล & บันทึก** — วาดภาพพาเลตและบันทึกประวัติผลการวิเคราะห์ลงไฟล์
+
+## 3. ฟีเจอร์หลัก (Features)
+
+- วิเคราะห์โทนผิวจากรูปภาพด้วย OpenCV (CIE Lab / ITA)
+- แนะนำพาเลตสีแบบ rule-based ปรับตามทรง/ความยาวเล็บ
+- **🤖 Smart Nail Advisory** — ที่ปรึกษา AI แบบ rule-based + explainable (อธิบายเหตุผลได้)
+  สรุปทิศทางสีประจำตัว + % ความมั่นใจ + ฟินิชที่เหมาะ + เคล็ดลับดูแล
+- **ค้นหา / กรองตามแท็ก / เรียงลำดับ** คำแนะนำ
+- ระบบเป็นแบบ **data-driven** — แก้สี/เพิ่มกฎได้ในไฟล์ `data/palette_rules.json` โดยไม่ต้องแตะโค้ด
+- บันทึกภาพพาเลต (.png) และประวัติผลการวิเคราะห์ (.json)
+- จัดการข้อผิดพลาด (ไฟล์ไม่พบ/ไม่ใช่รูป/พิกเซลผิวน้อย ฯลฯ) โดยไม่ crash
+- **รันได้ทั้งบนเครื่อง (CLI) และบน Google Colab (GUI)**
+
+## 4. สถาปัตยกรรม (3-Layer Architecture)
+
+| ชั้น (Layer) | หน้าที่ | ไฟล์ |
+|--------------|---------|------|
+| Presentation | CLI: รับ input, แสดงผล, จัดการข้อผิดพลาด | `src/cli.py` |
+| Business Logic | วิเคราะห์ผิว, ประเมินโทน, แนะนำสี, ที่ปรึกษา AI, เชื่อม API, โมเดลข้อมูล | `src/skin_analyzer.py`, `src/recommender.py`, `src/advisory.py`, `src/api_client.py`, `src/models.py` |
+| Data Access | อ่านกฎพาเลต, บันทึกประวัติ, วาด/บันทึกภาพ | `src/data_store.py`, `src/palette_renderer.py` |
+
+```
+Presentation (NailApp / CLI)
+        │
+        ▼
+Business Logic (SkinAnalyzer · NailRecommender · Suggestion/AnalysisResult)
+        │
+        ▼
+Data Access (DataStore · PaletteRenderer) ──► palette_rules.json · history.json · palette_*.png
+```
+
+## 5. เทคโนโลยีที่ใช้ (Tech Stack)
+
+- **Python 3.x** + OOP / โครงสร้างแบบโมดูล
+- **OpenCV** (ประมวลผลภาพ, color space), **NumPy** (คำนวณเมทริกซ์)
+- **requests** + **TheColorAPI** (External API ดึงชื่อสีจริง)
+- **Pillow / Matplotlib** (แสดงผลและวาดภาพ)
+- **AI Advisory** (rule-based + explainable — ไม่ใช่กล่องดำ)
+- **pytest** (ชุดทดสอบอัตโนมัติ) + **GitHub Actions** (CI/CD) + **GitHub Pages** (เว็บ)
+- เวอร์ชัน Colab เพิ่ม: **ipywidgets** (GUI), **pillow-heif** (รองรับไฟล์ .HEIC)
+
+## 6. โครงสร้างโปรเจกต์
+
+> โครงสร้าง repo แบ่งเป็น **สแน็ปช็อตราย Sprint** (`Sprint1/`–`Sprint3/`) ตามข้อกำหนดการส่งงาน
+> โดยโค้ด**เวอร์ชันล่าสุด/สมบูรณ์**อยู่ที่ราก repo
+
+```
+Final_project_ScriptProgrammingg/
+├── main.py                     # จุดเริ่มต้น (CLI)
+├── index.html                  # เว็บแดชบอร์ด (client-side, GitHub Pages)
+├── requirements.txt
+├── pytest.ini
+├── README.md · CHANGELOG.md · TEST.md
+├── PLAN.md · FLOWCHART.md · LEARNINGLOG.md · GITHUB_SETUP.md
+├── PRESENTATION_SLIDE_PROMPTS.md
+├── .github/workflows/          # ci.yml (pytest) · static.yml (GitHub Pages)
+├── src/
+│   ├── models.py               # Suggestion, AnalysisResult
+│   ├── data_store.py           # DataStore (โหลดกฎ/บันทึกประวัติ)
+│   ├── skin_analyzer.py        # SkinAnalyzer (skin mask + undertone/ITA)
+│   ├── recommender.py          # NailRecommender (suggest/search/filter/sort)
+│   ├── advisory.py             # NailAdvisory (🤖 AI rule-based + explainable)
+│   ├── palette_renderer.py     # PaletteRenderer (วาด/บันทึกภาพพาเลต)
+│   ├── api_client.py           # ColorApiClient (External API + Fallback)
+│   └── cli.py                  # NailApp (Presentation Layer)
+├── data/palette_rules.json     # กฎพาเลตสี (data-driven)
+├── tests/test_nail.py          # ชุดทดสอบอัตโนมัติ (21 เคส)
+├── test_cases/TEST_CASES.md
+├── notebook/nail_colab.ipynb   # เวอร์ชัน GUI บน Google Colab
+├── output/                     # ผลลัพธ์ (ภาพพาเลต + ประวัติ)
+├── Sprint1/                    # 📸 สแน็ปช็อตจบ Sprint 1 (core CV + CLI + 15 เทสต์)
+├── Sprint2/                    # 📸 สแน็ปช็อตจบ Sprint 2 (+ External API + 17 เทสต์)
+└── Sprint3/                    # 📸 สแน็ปช็อตจบ Sprint 3 (+ เว็บ + CI/CD)
+```
+
+## 7. วิธีติดตั้งและรัน (Getting Started)
+
+```bash
+git clone <URL ของ repository>
+cd nail-color-recommender
+pip install -r requirements.txt
+
+# โหมดโต้ตอบ (ถาม path รูป + ทรง + ความยาว)
+python main.py
+
+# หรือระบุค่าเลย: python main.py <path รูป> <ทรง> <ความยาว>
+python main.py hand.jpg oval medium
+```
+
+ผลลัพธ์: คำแนะนำพาเลตทางหน้าจอ + ภาพพาเลตใน `output/` + ประวัติใน `output/history.json`
+
+> เวอร์ชัน GUI: เปิด `notebook/nail_colab.ipynb` บน Google Colab แล้วกดรัน
+> (อัปโหลดรูปผ่านปุ่มและเลือกทรง/ความยาวจาก dropdown)
+
+## 8. การทดสอบ (Testing)
+
+```bash
+pytest            # หรือ  python -m pytest
+```
+
+ครอบคลุมการจำแนก undertone (ITA), การแปลงสี hex→BGR และเครื่องมือแนะนำ
+(suggest / search / filter / sort)
+
+## 9. สมาชิกในทีมและการหมุนเวียนบทบาท (Role Rotation Matrix)
+
+เพื่อให้สมาชิกทุกคนได้ฝึกครบทั้ง 3 บทบาทหลัก (**Planner / Architect**,
+**Coder / Dev**, **Debugger / QA & DevOps**) มีการหมุนเวียนบทบาทในแต่ละ Sprint
+
+| สมาชิก | รหัสนักศึกษา | Sprint 1 | Sprint 2 | Sprint 3 | Final |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| _____________ | __________ | Planner | Coder | Debugger | Planner |
+| _____________ | __________ | Coder | Debugger | Planner | Coder |
+| _____________ | __________ | Debugger | Planner | Coder | Debugger |
+
+> _(เติมชื่อ/รหัส และปรับการหมุนเวียนให้ตรงกับที่กลุ่มทำจริง)_
+
+## 10. ฟีเจอร์และสถานะการพัฒนา (Features & Status)
+
+### 🟢 ทำเสร็จแล้ว (Sprint 1–3 + Final)
+- วิเคราะห์โทนผิวจากภาพด้วย OpenCV (skin mask + ITA ใน CIE Lab)
+- แนะนำพาเลตสีแบบ rule-based ปรับตามทรง/ความยาวเล็บ (data-driven จาก JSON)
+- **เชื่อม External API (TheColorAPI)** ดึงชื่อสีจริงมาเสริมพาเลต พร้อมระบบ Fallback เมื่อ API ล่ม
+- ค้นหา / กรองตามแท็ก / เรียงลำดับคำแนะนำ
+- บันทึกภาพพาเลต (.png) และประวัติผลวิเคราะห์ (.json)
+- Exception handling ครบ (ไฟล์ไม่พบ/ไม่ใช่รูป/Ctrl+C/Ctrl+D)
+- **🤖 Smart Nail Advisory** — ที่ปรึกษา AI แบบ rule-based + explainable (ทิศทางสี + % ความมั่นใจ + ฟินิช + เคล็ดลับ)
+- ชุดทดสอบอัตโนมัติ 21 เคส (ผ่าน 100%) + CI รัน pytest ทุก push/PR
+- **หน้าเว็บแดชบอร์ด (`index.html`)** — อัปโหลดรูปแล้ววิเคราะห์+แนะนำสีในเบราว์เซอร์ (client-side), สองภาษา TH/EN, ดีไซน์ Glassmorphism
+- **Deploy ขึ้น GitHub Pages อัตโนมัติ** (`.github/workflows/static.yml`)
+
+### 🟡 ตามแผน (Roadmap — ต่อยอดในอนาคต)
+- ปรับความแม่นยำการตรวจจับ "เล็บ" ให้แยกจากผิวได้ดีขึ้น, เก็บ Edge Cases เพิ่ม
+- ต่อยอด AI: virtual try-on ทาสีบนเล็บจริง / โมเดล ML จำแนกโทนผิว-ทรงเล็บอัตโนมัติ
+
+### 🌐 เว็บเดโม (GitHub Pages)
+เมื่อเปิด GitHub Pages แล้ว เข้าได้ที่: `https://<ชื่อผู้ใช้>.github.io/<ชื่อ repo>/`
+
+## 11. เอกสารประกอบโครงการ (Project Docs)
+
+| ไฟล์ | เนื้อหา |
+|------|---------|
+| [`PLAN.md`](PLAN.md) | ขอบเขตงาน + Definition of Done |
+| [`Sprint1/README.md`](Sprint1/README.md) · [`Sprint2/`](Sprint2/README.md) · [`Sprint3/`](Sprint3/README.md) | รายงานผลแต่ละ Sprint (QA + Retrospective) |
+| [`FLOWCHART.md`](FLOWCHART.md) | แผนภาพสถาปัตยกรรม (Mermaid) |
+| [`LEARNINGLOG.md`](LEARNINGLOG.md) | บันทึกการใช้ AI อย่างรับผิดชอบ |
+| [`PRESENTATION_SLIDE_PROMPTS.md`](PRESENTATION_SLIDE_PROMPTS.md) | โครงบทนำเสนอ 5 ส่วน |
+| [`GITHUB_SETUP.md`](GITHUB_SETUP.md) | วิธีขึ้น GitHub + เปิด Pull Request |
+| [`TEST.md`](TEST.md) · [`test_cases/TEST_CASES.md`](test_cases/TEST_CASES.md) | การทดสอบและเคสทดสอบ |
+| [`CHANGELOG.md`](CHANGELOG.md) | ประวัติการเปลี่ยนแปลงตาม Sprint |
